@@ -15,7 +15,7 @@ create trigger on_spool_photo_uploaded
   for each row
   when (new.bucket_id = 'spool-photos')
   execute function supabase_functions.http_request(
-    'https://<project-ref>.supabase.co/functions/v1/process-spool-photo',
+    'https://tepcyuytkwyanfdtnttp.supabase.co/functions/v1/process-spool-photo',
     'POST',
     '{"Content-Type":"application/json"}',
     '{}',
