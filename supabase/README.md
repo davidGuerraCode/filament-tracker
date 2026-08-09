@@ -30,10 +30,16 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-After linking, open `supabase/migrations/20260809120300_storage_trigger_process_scan.sql` and
-replace `<project-ref>` with your real project ref (Project Settings > General > Reference ID),
-then re-run `supabase db push` (or apply that one statement via the Studio SQL editor). This
-can't be filled in ahead of time since it depends on a project that doesn't exist yet.
+Before pushing, open `supabase/migrations/20260809120300_storage_trigger_process_scan.sql` and
+replace `<project-ref>` with your real project ref (Project Settings > General > Reference ID).
+
+**First-time-only prerequisite:** the last migration's trigger calls
+`supabase_functions.http_request(...)`, which does not exist until Database Webhooks has been
+enabled at least once for the project. On a fresh project `supabase db push` will fail on this
+migration with `ERROR: schema "supabase_functions" does not exist`, even though the tables and
+storage bucket migrations before it succeed. Fix: in the Supabase dashboard, go to Database ->
+Webhooks and click "Enable Webhooks" (a one-time, one-click action; no need to create an actual
+webhook there), then re-run `supabase db push` -- the CLI resumes from the failed migration.
 
 ## Setting the Edge Function secret
 
