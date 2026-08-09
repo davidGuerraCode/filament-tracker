@@ -44,6 +44,25 @@ live DB directly without Docker (e.g. `net._http_response` for the raw webhook H
 
 No frontend exists yet as of this scaffold -- root `README.md` is the PRD, not app docs.
 
+## Frontend
+
+`frontend/` is a Vite + React + TypeScript app (real code, wired to the live backend above) --
+see `frontend/README.md` for how to run it and the magic-link auth flow. `frontend/design-system/`
+is a verbatim, unmodified copy of the designer-delivered design system export (tokens, primitive
+`.jsx`/`.d.ts` components, and a mocked `ui_kits/filament-tracker/` click-through) -- treat it as a
+reference/record, not code to edit or ship. The real primitives live in `frontend/src/components/ui/`,
+rebuilt with Tailwind v4 (`@tailwindcss/vite`) instead of the source's inline `style` objects; every
+design token is mapped into Tailwind's theme via the CSS-first `@theme` block in `frontend/src/index.css`
+-- see that file's leading comment for which keys were overridden vs. left at Tailwind's (matching)
+defaults. Gemini's extraction schema (see `process-spool-photo` above) never returns `weight_grams` or
+`remaining_grams`, so those two `spools` fields are always manual entry in the review/edit form.
+
+`pending_scans` needed an explicit `alter publication supabase_realtime add table public.pending_scans;`
+(migration `20260809170000_pending_scans_realtime.sql`) before the dashboard's `postgres_changes`
+subscription would receive anything -- enabling RLS on a table does not put it on the realtime wire,
+that's a separate opt-in. `spools` is deliberately not on that publication; the dashboard updates it
+from each mutation's own response instead of subscribing.
+
 ## Maintaining this file
 
 Keep this file for knowledge useful to almost every future agent session in this project.

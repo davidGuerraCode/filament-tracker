@@ -1,0 +1,102 @@
+<!-- @dsCard group="Filament Tracker" viewport="980x760" name="Dashboard (interactive)" subtitle="Scan → queue → review → confirm, click-through" -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="../../_ds_bundle.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>body{margin:0;background:var(--surface-app)}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="./SpoolCard.jsx"></script>
+<script type="text/babel" src="./PendingCard.jsx"></script>
+<script type="text/babel" src="./Dashboard.jsx"></script>
+<script type="text/babel" src="./ScanCapture.jsx"></script>
+<script type="text/babel" src="./ReviewEdit.jsx"></script>
+<script type="text/babel">
+const SEED_SPOOLS = [
+  { id: 's1', brand: 'Polymaker', material: 'PLA', colorName: 'Jet Black', hex: '#1a1c1e', remaining: 820, max: 1000, temp: 210, speed: 60 },
+  { id: 's2', brand: 'Prusament', material: 'PETG', colorName: 'Galaxy Silver', hex: '#8494a0', remaining: 140, max: 1000, temp: 240, speed: 45 },
+  { id: 's3', brand: 'eSun', material: 'ABS', colorName: 'Signal Amber', hex: '#f2b544', remaining: 610, max: 1000, temp: 250, speed: 50 },
+  { id: 's4', brand: 'Overture', material: 'PLA', colorName: 'Terminal Green', hex: '#39d353', remaining: 90, max: 1000, temp: 205, speed: 55 },
+  { id: 's5', brand: 'Sunlu', material: 'PETG', colorName: 'Deep Cyan', hex: '#2bb8b8', remaining: 470, max: 1000, temp: 235, speed: 40 },
+];
+
+function App() {
+  const [spools, setSpools] = React.useState(SEED_SPOOLS);
+  const [pending, setPending] = React.useState([]);
+  const [scanOpen, setScanOpen] = React.useState(false);
+  const [reviewItem, setReviewItem] = React.useState(null);
+  const [tab, setTab] = React.useState('all');
+  const [query, setQuery] = React.useState('');
+  const [toast, setToast] = React.useState(null);
+
+  function showToast(t) { setToast(t); setTimeout(() => setToast(null), 2600); }
+
+  function queueScan() {
+    const id = 'p' + Date.now();
+    setPending(p => [...p, { id, status: 'processing', queuedAt: 'just now', photo: null }]);
+    setScanOpen(false);
+    showToast({ tone: 'success', title: 'Queued', message: "We'll flag it ready to review." });
+    setTimeout(() => {
+      setPending(p => p.map(item => item.id === id ? {
+        ...item, status: 'ready',
+        extracted: { brand: 'Bambu Lab', material: 'PLA', colorName: 'Signal Red', weight: '1000', temp: '215', speed: '' },
+      } : item));
+    }, 3200);
+  }
+
+  function editSpool(spool) {
+    setReviewItem({
+      id: spool.id, editingSpoolId: spool.id, photo: null,
+      extracted: { brand: spool.brand, material: spool.material, colorName: spool.colorName, weight: spool.remaining, temp: spool.temp, speed: spool.speed },
+    });
+  }
+
+  function deleteSpool(id) {
+    setSpools(s => s.filter(x => x.id !== id));
+    showToast({ tone: 'info', title: 'Spool deleted' });
+  }
+
+  function confirmReview(item) {
+    const d = item.extracted || {};
+    if (item.editingSpoolId) {
+      setSpools(s => s.map(sp => sp.id === item.editingSpoolId ? {
+        ...sp, brand: d.brand || sp.brand, material: d.material || sp.material, colorName: d.colorName || sp.colorName,
+        remaining: Number(d.weight) || sp.remaining, temp: d.temp || sp.temp, speed: d.speed || sp.speed,
+      } : sp));
+      setReviewItem(null);
+      showToast({ tone: 'success', title: 'Spool updated' });
+      return;
+    }
+    setSpools(s => [...s, {
+      id: 's' + Date.now(), brand: d.brand || 'Unknown', material: d.material || '—',
+      colorName: d.colorName || '—', hex: '#c2394a', remaining: Number(d.weight) || 1000, max: Number(d.weight) || 1000,
+      temp: d.temp || '—', speed: d.speed || null,
+    }]);
+    setPending(p => p.filter(x => x.id !== item.id));
+    setReviewItem(null);
+    showToast({ tone: 'success', title: 'Added to inventory' });
+  }
+
+  const { Toast } = window.FilamentTrackerDesignSystem_5636be;
+
+  return (
+    <React.Fragment>
+      <Dashboard spools={spools} pending={pending} onOpenSpool={() => {}} onEditSpool={editSpool} onDeleteSpool={deleteSpool} onOpenPending={setReviewItem}
+        onScan={() => setScanOpen(true)} tab={tab} setTab={setTab} query={query} setQuery={setQuery} />
+      <ScanCapture open={scanOpen} onClose={() => setScanOpen(false)} onQueue={queueScan} />
+      <ReviewEdit item={reviewItem} onCancel={() => setReviewItem(null)} onConfirm={confirmReview} />
+      {toast && <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 80 }}><Toast {...toast} /></div>}
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
