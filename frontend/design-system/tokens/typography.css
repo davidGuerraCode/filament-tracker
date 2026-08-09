@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap');
+:root{
+--font-mono:'Fira Code',ui-monospace,'SF Mono',Consolas,'Liberation Mono',monospace;
+--font-feature-ligatures:'calt' 1,'liga' 1;
+
+--text-2xs:11px;
+--text-xs:12px;
+--text-sm:13px;
+--text-base:14px;
+--text-md:15px;
+--text-lg:17px;
+--text-xl:20px;
+--text-2xl:26px;
+--text-3xl:34px;
+--text-4xl:46px;
+
+--leading-tight:1.2;
+--leading-snug:1.35;
+--leading-normal:1.5;
+--leading-relaxed:1.7;
+
+--weight-regular:400;
+--weight-medium:500;
+--weight-semibold:600;
+--weight-bold:700;
+
+--tracking-tight:-0.01em;
+--tracking-normal:0;
+--tracking-wide:0.04em;
+--tracking-widest:0.12em;
+}
