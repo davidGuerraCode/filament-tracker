@@ -14,6 +14,11 @@
 //
 // Required secrets (set with `supabase secrets set`, see supabase/README.md):
 //   GEMINI_API_KEY
+//   WEBHOOK_SECRET -- must match the value the storage trigger sends as a
+//     Bearer token (see supabase/migrations/20260809120300_storage_trigger_process_scan.sql).
+//     This function has verify_jwt=false (the trigger call carries no user
+//     JWT), so this check is the only thing stopping an arbitrary caller
+//     from invoking it directly.
 // Auto-provided by the Supabase Edge Runtime, no setup needed:
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 
@@ -52,8 +57,20 @@ interface StorageWebhookPayload {
   record: {
     bucket_id: string;
     name: string;
+    owner: string | null;
     [key: string]: unknown;
   };
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) {
+    diff |= aBytes[i] ^ bBytes[i];
+  }
+  return diff === 0;
 }
 
 interface ExtractedFields {
@@ -65,6 +82,13 @@ interface ExtractedFields {
 }
 
 Deno.serve(async (req) => {
+  const webhookSecret = Deno.env.get("WEBHOOK_SECRET");
+  const authHeader = req.headers.get("authorization") ?? "";
+  const presentedSecret = authHeader.replace(/^Bearer\s+/i, "");
+  if (!webhookSecret || !timingSafeEqual(presentedSecret, webhookSecret)) {
+    return new Response("unauthorized", { status: 401 });
+  }
+
   let payload: StorageWebhookPayload;
   try {
     payload = await req.json();
@@ -80,9 +104,13 @@ Deno.serve(async (req) => {
   }
 
   const photoPath = object.name as string;
-  const owner = photoPath.split("/")[0];
+  // Trust storage.objects' own `owner` column (set by Supabase Storage at
+  // upload time from the authenticated uploader's uid), not a guess parsed
+  // from the path -- the path is just a naming convention, not a security
+  // boundary.
+  const owner = object.owner;
   if (!owner) {
-    return new Response("ignored: unexpected object path", { status: 200 });
+    return new Response("ignored: object has no owner", { status: 200 });
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

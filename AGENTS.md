@@ -8,10 +8,11 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 Supabase CLI project layout under `supabase/` (migrations, `functions/process-spool-photo`,
 `config.toml`). See `supabase/README.md` for local dev, applying migrations, setting the
-`GEMINI_API_KEY` function secret, and the two captain-owned setup steps (live Supabase project,
-Gemini API key) still needed before this runs end-to-end. That doc also lists known scaffold
-limitations (untested against a live project, storage-trigger webhook has no shared-secret
-check yet, Gemini model name unconfirmed).
+`GEMINI_API_KEY`/`WEBHOOK_SECRET` function secrets, and the two captain-owned setup steps (live
+Supabase project, Gemini API key) still needed before this runs end-to-end. The storage-trigger
+webhook authenticates via a Vault-stored shared secret (Bearer token), not just `verify_jwt`.
+That doc also lists known scaffold limitations (untested against a live project, Gemini model
+name unconfirmed).
 
 No frontend exists yet as of this scaffold -- root `README.md` is the PRD, not app docs.
 
