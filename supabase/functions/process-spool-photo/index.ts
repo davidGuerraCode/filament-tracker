@@ -19,7 +19,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.0-flash-lite";
+const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ?? "gemini-flash-latest";
 
 const EXTRACTION_SCHEMA = {
   type: "OBJECT",
