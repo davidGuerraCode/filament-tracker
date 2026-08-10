@@ -47,7 +47,7 @@ export function Input({
           placeholder={placeholder}
           disabled={disabled}
           onChange={onChange}
-          className="flex-1 bg-transparent border-none outline-none text-text-primary font-mono text-sm caret-caret"
+          className="flex-1 min-w-0 truncate bg-transparent border-none outline-none text-text-primary font-mono text-sm caret-caret"
         />
       </span>
       {error && <span className="text-xs text-status-error">{error}</span>}
