@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { PendingScan, Spool } from '../types';
@@ -20,6 +20,24 @@ export function Dashboard({ session }: { session: Session }) {
   const [scanOpen, setScanOpen] = useState(false);
   const [reviewTarget, setReviewTarget] = useState<ReviewTarget | null>(null);
   const [toast, setToast] = useState<{ tone: 'success' | 'error' | 'info'; title: string } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showToast(next: { tone: 'success' | 'error' | 'info'; title: string }) {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast(next);
+    toastTimerRef.current = setTimeout(() => setToast(null), 2800);
+  }
+
+  function dismissToast() {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast(null);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,13 +99,13 @@ export function Dashboard({ session }: { session: Session }) {
       setPending((prev) => prev.filter((p) => p.id !== opts.removePendingScanId));
     }
     setReviewTarget(null);
-    setToast({ tone: 'success', title: opts.removePendingScanId ? 'Added to inventory' : 'Spool updated' });
+    showToast({ tone: 'success', title: opts.removePendingScanId ? 'Added to inventory' : 'Spool updated' });
   }
 
   async function handleDelete(id: string) {
     const { error } = await supabase.from('spools').delete().eq('id', id);
     if (error) {
-      setToast({ tone: 'error', title: error.message });
+      showToast({ tone: 'error', title: error.message });
       return;
     }
     setSpools((prev) => prev.filter((s) => s.id !== id));
@@ -97,7 +115,7 @@ export function Dashboard({ session }: { session: Session }) {
     await supabase.storage.from('spool-photos').remove([item.photo_path]);
     const { error } = await supabase.from('pending_scans').delete().eq('id', item.id);
     if (error) {
-      setToast({ tone: 'error', title: error.message });
+      showToast({ tone: 'error', title: error.message });
       return;
     }
     setPending((prev) => prev.filter((p) => p.id !== item.id));
@@ -171,16 +189,16 @@ export function Dashboard({ session }: { session: Session }) {
         onClose={() => setScanOpen(false)}
         onQueued={() => {
           setScanOpen(false);
-          setToast({ tone: 'info', title: 'Photo queued — extraction running in background' });
+          showToast({ tone: 'info', title: 'Photo queued — extraction running in background' });
         }}
-        onError={(message) => setToast({ tone: 'error', title: message })}
+        onError={(message) => showToast({ tone: 'error', title: message })}
       />
 
       <ReviewEdit target={reviewTarget} onCancel={() => setReviewTarget(null)} onSaved={handleSaved} />
 
       {toast && (
         <div className="fixed bottom-6 left-6 z-[60]">
-          <Toast tone={toast.tone} title={toast.title} onClose={() => setToast(null)} />
+          <Toast tone={toast.tone} title={toast.title} onClose={dismissToast} />
         </div>
       )}
     </div>
