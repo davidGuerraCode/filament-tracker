@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { IconButton } from './ui';
 
-export function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+export function CardMenu({ onEdit, onDelete }: { onEdit?: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -21,15 +21,17 @@ export function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: (
       </IconButton>
       {open && (
         <div className="absolute top-[110%] right-0 min-w-[120px] z-10 bg-surface-raised border border-border-default rounded-sm shadow-panel overflow-hidden font-mono">
-          <button
-            onClick={() => {
-              setOpen(false);
-              onEdit();
-            }}
-            className="block w-full text-left px-3 py-2 bg-transparent border-none text-text-primary text-xs font-mono cursor-pointer hover:bg-surface-hover"
-          >
-            Edit
-          </button>
+          {onEdit && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                onEdit();
+              }}
+              className="block w-full text-left px-3 py-2 bg-transparent border-none text-text-primary text-xs font-mono cursor-pointer hover:bg-surface-hover"
+            >
+              Edit
+            </button>
+          )}
           <button
             onClick={() => {
               setOpen(false);

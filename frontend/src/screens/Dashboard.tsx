@@ -93,6 +93,16 @@ export function Dashboard({ session }: { session: Session }) {
     setSpools((prev) => prev.filter((s) => s.id !== id));
   }
 
+  async function handleDeletePending(item: PendingScan) {
+    await supabase.storage.from('spool-photos').remove([item.photo_path]);
+    const { error } = await supabase.from('pending_scans').delete().eq('id', item.id);
+    if (error) {
+      setToast({ tone: 'error', title: error.message });
+      return;
+    }
+    setPending((prev) => prev.filter((p) => p.id !== item.id));
+  }
+
   return (
     <div className="max-w-[980px] mx-auto px-6 pt-7 pb-[100px] font-mono">
       <div className="flex justify-between items-baseline mb-5">
@@ -127,7 +137,12 @@ export function Dashboard({ session }: { session: Session }) {
           <div className="text-2xs text-text-tertiary uppercase tracking-wide mb-2.5">Pending scans</div>
           <div className="flex gap-3.5 flex-wrap">
             {pending.map((p) => (
-              <PendingCard key={p.id} item={p} onOpen={(scan) => setReviewTarget({ mode: 'scan', scan })} />
+              <PendingCard
+                key={p.id}
+                item={p}
+                onOpen={(scan) => setReviewTarget({ mode: 'scan', scan })}
+                onDelete={handleDeletePending}
+              />
             ))}
           </div>
         </div>
