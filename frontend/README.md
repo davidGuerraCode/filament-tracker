@@ -56,6 +56,7 @@ any dashboard data will load.
   response instead.
 - **Review/edit** writes a real `spools` row on confirm (insert for a scan, update for an existing spool)
   and, for a scan, deletes the now-consumed `pending_scans` row.
-- Gemini's extraction schema only returns `brand` / `material` / `color` / `print_temp_c` /
-  `print_speed_mm_s` — never `weight_grams` or `remaining_grams`. Those two fields are always manual entry
-  in the review form, even in scan-review mode.
+- Gemini's extraction schema returns `brand` / `material` / `color` / `weight_grams` / `print_temp_c` /
+  `print_speed_mm_s` — never `remaining_grams`. That field is always manual entry in the review form,
+  even in scan-review mode (a fresh scan has nothing yet to have "remaining" — it starts equal to the
+  full weight).

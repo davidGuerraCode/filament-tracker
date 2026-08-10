@@ -27,6 +27,7 @@ const EXTRACTION_SCHEMA = {
     brand: { type: "STRING", nullable: true },
     material: { type: "STRING", nullable: true },
     color: { type: "STRING", nullable: true },
+    weight_grams: { type: "NUMBER", nullable: true },
     print_temp_c: { type: "NUMBER", nullable: true },
     print_speed_mm_s: { type: "NUMBER", nullable: true },
   },
@@ -35,13 +36,19 @@ const EXTRACTION_SCHEMA = {
 
 const EXTRACTION_PROMPT = `You are reading the printed label on a 3D-printer filament spool from a
 photo. Extract exactly these fields if -- and only if -- they are visibly
-printed on the label: brand, material (e.g. PLA, PETG, ABS, TPU), color,
-recommended print temperature in Celsius, recommended print speed in mm/s.
+printed on the label: brand, material (e.g. PLA, PETG, ABS, TPU), color, net/spool
+weight in grams, recommended print temperature in Celsius, recommended print
+speed in mm/s.
 
 Rules:
 - Only report a value you can actually read on the label.
 - If a field is missing, unclear, or not printed on the label, return null
   for it. Do not guess, infer, or fabricate a value.
+- Weight is sometimes printed in grams (e.g. "1000g", "1000 g") and sometimes
+  in kilograms (e.g. "1kg", "1 kg net weight") -- always convert to grams and
+  return weight_grams as a plain number of grams (e.g. "1kg" -> 1000,
+  "0.25kg" -> 250, "250g" -> 250). Do the unit conversion yourself; never
+  return a kilogram value unconverted.
 - Temperature and speed must be single numbers (if the label prints a range
   like "190-220", pick the midpoint).`;
 
@@ -60,6 +67,7 @@ interface ExtractedFields {
   brand: string | null;
   material: string | null;
   color: string | null;
+  weight_grams: number | null;
   print_temp_c: number | null;
   print_speed_mm_s: number | null;
 }
@@ -185,6 +193,7 @@ async function extractFieldsWithGemini(
     brand: parsed.brand ?? null,
     material: parsed.material ?? null,
     color: parsed.color ?? null,
+    weight_grams: parsed.weight_grams ?? null,
     print_temp_c: parsed.print_temp_c ?? null,
     print_speed_mm_s: parsed.print_speed_mm_s ?? null,
   };
