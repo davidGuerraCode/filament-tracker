@@ -24,7 +24,7 @@ export function SpoolCard({
   return (
     <Card interactive onClick={() => onOpen(spool)} style={{ width: 220 }} className="flex flex-col gap-2.5">
       <div className="flex justify-between items-center">
-        <ColorSwatch color={spool.color || 'var(--color-gray-600)'} size={22} />
+        <ColorSwatch color={spool.color_hex || 'var(--color-gray-600)'} size={22} />
         <CardMenu onEdit={() => onEdit(spool)} onDelete={() => setConfirmOpen(true)} />
       </div>
       {low && (

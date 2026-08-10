@@ -27,6 +27,7 @@ const EXTRACTION_SCHEMA = {
     brand: { type: "STRING", nullable: true },
     material: { type: "STRING", nullable: true },
     color: { type: "STRING", nullable: true },
+    color_hex: { type: "STRING", nullable: true },
     weight_grams: { type: "NUMBER", nullable: true },
     print_temp_c: { type: "NUMBER", nullable: true },
     print_speed_mm_s: { type: "NUMBER", nullable: true },
@@ -35,15 +36,26 @@ const EXTRACTION_SCHEMA = {
 };
 
 const EXTRACTION_PROMPT = `You are reading the printed label on a 3D-printer filament spool from a
-photo. Extract exactly these fields if -- and only if -- they are visibly
-printed on the label: brand, material (e.g. PLA, PETG, ABS, TPU), color, net/spool
-weight in grams, recommended print temperature in Celsius, recommended print
-speed in mm/s.
+photo. Extract exactly these fields: brand, material (e.g. PLA, PETG, ABS,
+TPU), color, color_hex, net/spool weight in grams, recommended print
+temperature in Celsius, recommended print speed in mm/s.
+
+- brand/material/weight/temp/speed: only report a value if -- and only if --
+  it is visibly printed on the label as text.
+- color: the color name as printed on the label (e.g. "Galaxy Silver",
+  "Signal Amber"), not an estimate.
+- color_hex: separate from the printed name -- look at the actual filament
+  color shown in the photo (the spool itself, not the text) and return your
+  best-estimate hex color for it, formatted as "#rrggbb" (e.g. "#c0c0c0").
+  Return this even if the printed color name is missing, and return null for
+  it only if the photo genuinely doesn't show the filament itself (e.g. it's
+  cropped to just the printed text).
 
 Rules:
-- Only report a value you can actually read on the label.
-- If a field is missing, unclear, or not printed on the label, return null
-  for it. Do not guess, infer, or fabricate a value.
+- If a field is missing, unclear, or not determinable, return null for it.
+  Do not guess, infer, or fabricate a value for the text-based fields
+  (brand/material/color/weight/temp/speed) -- color_hex is the one field
+  that's explicitly a visual estimate, not a literal reading.
 - Weight is sometimes printed in grams (e.g. "1000g", "1000 g") and sometimes
   in kilograms (e.g. "1kg", "1 kg net weight") -- always convert to grams and
   return weight_grams as a plain number of grams (e.g. "1kg" -> 1000,
@@ -67,6 +79,7 @@ interface ExtractedFields {
   brand: string | null;
   material: string | null;
   color: string | null;
+  color_hex: string | null;
   weight_grams: number | null;
   print_temp_c: number | null;
   print_speed_mm_s: number | null;
@@ -193,6 +206,7 @@ async function extractFieldsWithGemini(
     brand: parsed.brand ?? null,
     material: parsed.material ?? null,
     color: parsed.color ?? null,
+    color_hex: parsed.color_hex ?? null,
     weight_grams: parsed.weight_grams ?? null,
     print_temp_c: parsed.print_temp_c ?? null,
     print_speed_mm_s: parsed.print_speed_mm_s ?? null,
