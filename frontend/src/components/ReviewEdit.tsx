@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 
 export type ReviewTarget = { mode: 'scan'; scan: PendingScan } | { mode: 'edit'; spool: Spool };
 
+const BRAND_OPTIONS = ['SUNLU', 'BambuLab', 'Elegoo'];
 const MATERIAL_OPTIONS = ['PLA', 'PETG', 'ABS', 'TPU'];
 
 function Field({
@@ -59,6 +60,12 @@ export function ReviewEdit({
 
   if (!target) return null;
   const t = target;
+
+  const brandOptions = [
+    ...BRAND_OPTIONS.map((b) => ({ value: b, label: b })),
+    ...(brand && !BRAND_OPTIONS.includes(brand) ? [{ value: brand, label: brand }] : []),
+    { value: '', label: '— select —' },
+  ];
 
   const materialOptions = [
     ...MATERIAL_OPTIONS.map((m) => ({ value: m, label: m })),
@@ -141,7 +148,7 @@ export function ReviewEdit({
       )}
       {error && <p className="text-xs text-status-error mb-3">{error}</p>}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Brand" value={brand} detected={!isEdit && !!detected.brand} onChange={setBrand} />
+        <Select label="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} options={brandOptions} />
         <Select label="Material" value={material} onChange={(e) => setMaterial(e.target.value)} options={materialOptions} />
         <Field label="Color name" value={color} detected={!isEdit && !!detected.color} onChange={setColor} />
         <Field label="Weight (g)" value={weight} detected={false} onChange={setWeight} type="number" />
