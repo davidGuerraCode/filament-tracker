@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Dialog, Button } from './ui';
 import { supabase } from '../lib/supabase';
+import { uuidv4 } from '../lib/uuid';
 
 export function ScanCapture({
   open,
@@ -32,18 +33,23 @@ export function ScanCapture({
   async function handleQueue() {
     if (!file) return;
     setUploading(true);
-    const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
-    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from('spool-photos').upload(path, file, {
-      contentType: file.type || 'image/jpeg',
-    });
-    setUploading(false);
-    if (error) {
-      onError(error.message);
-      return;
+    try {
+      const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+      const path = `${userId}/${uuidv4()}.${ext}`;
+      const { error } = await supabase.storage.from('spool-photos').upload(path, file, {
+        contentType: file.type || 'image/jpeg',
+      });
+      if (error) {
+        onError(error.message);
+        return;
+      }
+      reset();
+      onQueued();
+    } catch (err) {
+      onError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
     }
-    reset();
-    onQueued();
   }
 
   return (
