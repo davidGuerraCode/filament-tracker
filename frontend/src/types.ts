@@ -18,6 +18,7 @@ export interface ExtractedFields {
   brand: string | null;
   material: string | null;
   color: string | null;
+  weight_grams: number | null;
   print_temp_c: number | null;
   print_speed_mm_s: number | null;
 }

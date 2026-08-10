@@ -54,8 +54,9 @@ reference/record, not code to edit or ship. The real primitives live in `fronten
 rebuilt with Tailwind v4 (`@tailwindcss/vite`) instead of the source's inline `style` objects; every
 design token is mapped into Tailwind's theme via the CSS-first `@theme` block in `frontend/src/index.css`
 -- see that file's leading comment for which keys were overridden vs. left at Tailwind's (matching)
-defaults. Gemini's extraction schema (see `process-spool-photo` above) never returns `weight_grams` or
-`remaining_grams`, so those two `spools` fields are always manual entry in the review/edit form.
+defaults. Gemini's extraction schema (see `process-spool-photo` above) returns `weight_grams` (prompt
+handles g/kg unit normalization itself, not the client) but never `remaining_grams` -- that field is
+always manual entry in the review/edit form.
 
 `pending_scans` needed an explicit `alter publication supabase_realtime add table public.pending_scans;`
 (migration `20260809170000_pending_scans_realtime.sql`) before the dashboard's `postgres_changes`

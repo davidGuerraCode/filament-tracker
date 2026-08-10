@@ -51,7 +51,7 @@ export function ReviewEdit({
   const [brand, setBrand] = useState(String(source.brand ?? detected.brand ?? ''));
   const [material, setMaterial] = useState(String(source.material ?? detected.material ?? ''));
   const [color, setColor] = useState(String(source.color ?? detected.color ?? ''));
-  const [weight, setWeight] = useState(String(source.weight_grams ?? ''));
+  const [weight, setWeight] = useState(String(source.weight_grams ?? detected.weight_grams ?? ''));
   const [remaining, setRemaining] = useState(String(source.remaining_grams ?? source.weight_grams ?? ''));
   const [temp, setTemp] = useState(String(source.print_temp_c ?? detected.print_temp_c ?? ''));
   const [speed, setSpeed] = useState(String(source.print_speed_mm_s ?? detected.print_speed_mm_s ?? ''));
@@ -151,7 +151,13 @@ export function ReviewEdit({
         <Select label="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} options={brandOptions} />
         <Select label="Material" value={material} onChange={(e) => setMaterial(e.target.value)} options={materialOptions} />
         <Field label="Color name" value={color} detected={!isEdit && !!detected.color} onChange={setColor} />
-        <Field label="Weight (g)" value={weight} detected={false} onChange={setWeight} type="number" />
+        <Field
+          label="Weight (g)"
+          value={weight}
+          detected={!isEdit && detected.weight_grams != null}
+          onChange={setWeight}
+          type="number"
+        />
         <Field label="Remaining (g)" value={remaining} detected={false} onChange={setRemaining} type="number" />
         <Field
           label="Print temp (°C)"
