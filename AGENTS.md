@@ -56,7 +56,11 @@ design token is mapped into Tailwind's theme via the CSS-first `@theme` block in
 -- see that file's leading comment for which keys were overridden vs. left at Tailwind's (matching)
 defaults. Gemini's extraction schema (see `process-spool-photo` above) returns `weight_grams` (prompt
 handles g/kg unit normalization itself, not the client) but never `remaining_grams` -- that field is
-always manual entry in the review/edit form.
+always manual entry in the review/edit form. It also returns `color_hex` (`spools.color_hex`, migration
+`20260810030000_spools_color_hex.sql`) alongside `color` -- `color` is the label's printed color *name*
+(e.g. "Galaxy Silver"), never a valid CSS color on its own, so `ColorSwatch` renders `color_hex` (the
+model's visual estimate of the actual filament color from the photo) instead, falling back to a neutral
+gray when null.
 
 `pending_scans` needed an explicit `alter publication supabase_realtime add table public.pending_scans;`
 (migration `20260809170000_pending_scans_realtime.sql`) before the dashboard's `postgres_changes`

@@ -13,7 +13,7 @@ create table if not exists public.pending_scans (
   photo_path text not null,
   status public.pending_scan_status not null default 'processing',
   -- Best-effort extraction result once status = 'ready'. Shape:
-  -- { brand, material, color, weight_grams, print_temp_c, print_speed_mm_s } -- any field
+  -- { brand, material, color, color_hex, weight_grams, print_temp_c, print_speed_mm_s } -- any field
   -- the model couldn't read is omitted/null, never fabricated.
   extracted jsonb,
   created_at timestamptz not null default now(),

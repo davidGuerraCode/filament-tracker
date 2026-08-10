@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import type { ExtractedFields, PendingScan, Spool } from '../types';
-import { Dialog, Input, Select, Badge, Button } from './ui';
+import { Dialog, Input, Select, Badge, Button, ColorSwatch } from './ui';
 import { supabase } from '../lib/supabase';
 
 export type ReviewTarget = { mode: 'scan'; scan: PendingScan } | { mode: 'edit'; spool: Spool };
@@ -14,12 +15,14 @@ function Field({
   detected,
   onChange,
   type = 'text',
+  prefix,
 }: {
   label: string;
   value: string;
   detected: boolean;
   onChange: (v: string) => void;
   type?: string;
+  prefix?: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -29,6 +32,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={detected ? undefined : '— not detected, enter manually —'}
+        prefix={prefix}
       />
       {detected ? <Badge tone="info">detected</Badge> : <Badge tone="neutral">manual</Badge>}
     </div>
@@ -51,6 +55,7 @@ export function ReviewEdit({
   const [brand, setBrand] = useState(String(source.brand ?? detected.brand ?? ''));
   const [material, setMaterial] = useState(String(source.material ?? detected.material ?? ''));
   const [color, setColor] = useState(String(source.color ?? detected.color ?? ''));
+  const colorHex = source.color_hex ?? detected.color_hex ?? null;
   const [weight, setWeight] = useState(String(source.weight_grams ?? detected.weight_grams ?? ''));
   const [remaining, setRemaining] = useState(String(source.remaining_grams ?? source.weight_grams ?? ''));
   const [temp, setTemp] = useState(String(source.print_temp_c ?? detected.print_temp_c ?? ''));
@@ -80,6 +85,7 @@ export function ReviewEdit({
       brand: brand || null,
       material: material || null,
       color: color || null,
+      color_hex: colorHex,
       weight_grams: weight ? Number(weight) : null,
       remaining_grams: remaining ? Number(remaining) : null,
       print_temp_c: temp ? Number(temp) : null,
@@ -150,7 +156,13 @@ export function ReviewEdit({
       <div className="grid grid-cols-2 gap-3">
         <Select label="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} options={brandOptions} />
         <Select label="Material" value={material} onChange={(e) => setMaterial(e.target.value)} options={materialOptions} />
-        <Field label="Color name" value={color} detected={!isEdit && !!detected.color} onChange={setColor} />
+        <Field
+          label="Color name"
+          value={color}
+          detected={!isEdit && !!detected.color}
+          onChange={setColor}
+          prefix={<ColorSwatch color={colorHex ?? 'var(--color-gray-600)'} size={14} />}
+        />
         <Field
           label="Weight (g)"
           value={weight}
