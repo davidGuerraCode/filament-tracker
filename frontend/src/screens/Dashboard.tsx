@@ -194,7 +194,12 @@ export function Dashboard({ session }: { session: Session }) {
         onError={(message) => showToast({ tone: 'error', title: message })}
       />
 
-      <ReviewEdit target={reviewTarget} onCancel={() => setReviewTarget(null)} onSaved={handleSaved} />
+      <ReviewEdit
+        key={reviewTarget ? `${reviewTarget.mode}:${reviewTarget.mode === 'scan' ? reviewTarget.scan.id : reviewTarget.spool.id}` : 'none'}
+        target={reviewTarget}
+        onCancel={() => setReviewTarget(null)}
+        onSaved={handleSaved}
+      />
 
       {toast && (
         <div className="fixed bottom-6 left-6 z-[60]">
